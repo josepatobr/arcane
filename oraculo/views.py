@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from rolepermissions.checkers import has_permission
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 from .models import Treinamentos
 from django_q.models import Task
@@ -13,71 +12,86 @@ from django.conf import settings
 from langchain_openai import ChatOpenAI
 from pathlib import Path
 from django.http import StreamingHttpResponse
+from datetime import datetime
+
 
 def treinar_ia(request):
-    if not has_permission(request.user, 'treinar_ia'):
-        tasks = Task.objects.all()
-        raise Http404()
-    if request.method == 'GET':
-        site = request.GET.get('site')
-        conteudo = request.GET.get('conteudo')
-        documento = request.FILES.get('documento')
-        if site and conteudo and documento:
+    if request.method == "POST":
+        site = request.POST.get("site")
+        conteudo = request.POST.get("conteudo")
+        documento = request.FILES.get("documento")
+
+        if all([site, conteudo, documento]):
             treinamentos = Treinamentos(
-                site=site,
-                conteudo=conteudo,
-                documento=documento
+                site=site, conteudo=conteudo, documento=documento
             )
             treinamentos.save()
-    return render(request, 'treinar_ia.html', {'tasks': tasks})
+            return redirect("treinar_ia")
+
+    tasks = Task.objects.all()
+        
+    fontes = Treinamentos.objects.all()
+
+    context = {
+            "tasks": tasks,
+            "fontes": fontes,
+        }
+        
+    return render(request, "treinar_ia.html", context)
 
 
 
 @csrf_exempt
 def chat(request):
-    if request.method == 'GET':
-        return render(request, 'chat.html')
-    elif request.method == 'POST':
-        pergunta_user = request.POST.get('pergunta')
-        pergunta = Pergunta(
-            pergunta=pergunta_user    
-        )
+    horario_atual = datetime.now()
+
+    if request.method == "GET":
+        return render(request, "chat.html", {"horario_atual": horario_atual})
+    elif request.method == "POST":
+        pergunta_user = request.POST.get("pergunta")
+        pergunta = Pergunta(pergunta=pergunta_user)
         pergunta.save()
-        return JsonResponse({'id': pergunta.id})
-        
+        return JsonResponse({"id": pergunta.id})
 
 
 @csrf_exempt
 def stream_response(request):
-    id_pergunta = request.POST.get('id_pergunta')
+    id_pergunta = request.POST.get("id_pergunta")
     pergunta = Pergunta.objects.get(id=id_pergunta)
+
     def stream_generator():
-        embeddings = OpenAIEmbeddings(openai_api_key=settings.OPENAI_API_KEY)
-        vectordb = FAISS.load_local("banco_faiss", embeddings, allow_dangerous_deserialization=True)
+        embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)
+        vectordb = FAISS.load_local(
+            "banco_faiss", embeddings, allow_dangerous_deserialization=True
+        )
 
         docs = vectordb.similarity_search(pergunta.pergunta, k=5)
         for doc in docs:
             dt = DataTreinamento.objects.create(
-                metadata=doc.metadata,
-                texto=doc.page_content
+                metadata=doc.metadata, texto=doc.page_content
             )
             pergunta.data_treinamento.add(dt)
 
-        contexto = "\n\n".join([
-            f"Material: {Path(doc.metadata.get('source', 'Desconhecido')).name}\n{doc.page_content}"
-            for doc in docs
-        ])
+        contexto = "\n\n".join(
+            [
+                f"Material: {Path(doc.metadata.get('source', 'Desconhecido')).name}\n{doc.page_content}"
+                for doc in docs
+            ]
+        )
 
         messages = [
-            {"role": "system", "content": f"Você é um assistente virtual e deve responder com precissão as perguntas sobre uma empresa.\n\n{contexto}"},
-            {"role": "user", "content": pergunta.pergunta}
+            {
+                "role": "system",
+                "content": f"Você é um assistente virtual e deve responder com precissão as perguntas sobre uma empresa.\n\n{contexto}",
+            },
+            {"role": "user", "content": pergunta.pergunta},
         ]
 
         llm = ChatOpenAI(
-            model_name="gpt-3.5-turbo",
+            model_name="gpt-4o-mini",
             streaming=True,
             temperature=0,
-            openai_api_key=settings.OPENAI_API_KEY
+            openai_api_key=settings.openai_api_key,
         )
 
         for chunk in llm.stream(messages):
@@ -85,14 +99,17 @@ def stream_response(request):
             if token:
                 yield token
 
-    return StreamingHttpResponse(stream_generator(), content_type='text/plain; charset=utf-8')
+    return StreamingHttpResponse(
+        stream_generator(), content_type="text/plain; charset=utf-8"
+    )
+
+
 
 def ver_fontes(request, id):
-    pergunta = Pergunta.objects.get(id=id)
-    for i in pergunta.data_treinamento.all():
-        print(i.metadata)
-        print(i.texto)
-        print('---')
+    pergunta = get_object_or_404(Pergunta, id=id)
+    
+    print(pergunta.data_treinamento)
     print(pergunta.pergunta)
+    print("---")
 
-    return render(request, 'ver_fontes.html', {'pergunta': pergunta})
+    return render(request, "ver_fonte.html", {"pergunta": pergunta})

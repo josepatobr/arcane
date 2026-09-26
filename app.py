@@ -14,19 +14,21 @@ os.environ["OPENAI_API_KEY"] = (
 
 
 embeddings = OpenAIEmbeddings()
-vectordb = FAISS.load_local("banco_faiss", embeddings, allow_dangerous_deserialization=True)
+vectordb = FAISS.load_local(
+    "banco_faiss", embeddings, allow_dangerous_deserialization=True
+)
 
-docs = vectordb.similarity_search('O que é o perceptron?', k=5)
+docs = vectordb.similarity_search("O que é o perceptron?", k=5)
 
-contexto = "\n\n".join([
-        f"Material: {doc.page_content}"
-        for doc in docs
-])
+contexto = "\n\n".join([f"Material: {doc.page_content}" for doc in docs])
 
 messages = [
-        {"role": "system", "content": f"Você é um assistente virtual e deve responder com precissão as perguntas sobre uma empresa.\n\n{contexto}"},
-        {"role": "user", "content": 'O que é o perceptron?'}
-    ]
+    {
+        "role": "system",
+        "content": f"Você é um assistente virtual e deve responder com precissão as perguntas sobre uma empresa.\n\n{contexto}",
+    },
+    {"role": "user", "content": "O que é o perceptron?"},
+]
 
 llm = ChatOpenAI(
     model_name="gpt-3.5-turbo",

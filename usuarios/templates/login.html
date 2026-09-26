@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
-{% block 'conteudo' %}
+
+{% block content %}
     <div class="flex min-h-screen bg-[#fef5ec]/60 flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div class="sm:mx-auto sm:w-full sm:max-w-md">
-            <img class="mx-auto h-10 w-auto"
-                 src="{% static 'img/arcane.png' %}"
-                 alt="Your Company">
-            <h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">Entra em sua conta</h2>
+            <h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">Entrar em sua conta</h2>
         </div>
         <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
             <div class="bg-white px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
@@ -51,8 +49,8 @@
             </div>
             <p class="mt-10 text-center text-sm/6 text-gray-500">
                 Não tem uma conta?
-                <a href="#" class="font-semibold text-indigo-600 hover:text-indigo-500">Criar.</a>
+                <a href="{% url 'cadastro' %}" class="font-semibold text-indigo-600 hover:text-indigo-500">Criar.</a>
             </p>
         </div>
     </div>
-{% endblock 'conteudo' %}
+{% endblock %}

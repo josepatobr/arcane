@@ -2,7 +2,7 @@
 {% load static %}
 {% load permission_tags %}
 
-{% block 'conteudo' %}
+{% block content %}
     <main>
         <header class="relative isolate bg-lime-200/80">
             <div class="mx-auto max-w-7xl py-10 sm:px-6">
@@ -16,8 +16,12 @@
                     </div>
                     <div class="flex items-center gap-x-4 sm:gap-x-6">
                         <a href="{% url 'treinar_ia' %}"
-                           type="button"
-                           class="hidden text-sm/6 font-semibold text-gray-900 sm:block">Treinamento da IA</a>
+                           class="hidden text-sm/6 font-semibold text-gray-900 sm:block">Treinamento da IA
+                        </a>
+
+                        <a href="{% url 'chat' %}"
+                           class="hidden text-sm/6 font-semibold text-gray-900 sm:block underline">Perguntar
+                        </a>
                     </div>
                 </div>
             </div>
@@ -43,13 +47,13 @@
                                 <!-- Header opcional -->
                                 {% if contexto.metadata.source %}
                                     <div class="mb-2 text-sm text-gray-500 font-medium flex items-center gap-2">
-                                        Página encontrada - {{ contexto.metadata.page }}
+                                        Página encontrada - {{ contexto.metadata.page }} 
                                     </div>
                                 {% endif %}
 
                                 <!-- Conteúdo do chunk -->
                                 <div class="text-gray-900 text-sm">
-                                    {{ contexto.texto }}
+                                    {{ contexto.conteudo }}
                                 </div>
 
                                 <!-- Link do arquivo -->
@@ -76,7 +80,4 @@
         </div>
 
     </main>
-
-
-
-{% endblock 'conteudo' %}
+{% endblock %}

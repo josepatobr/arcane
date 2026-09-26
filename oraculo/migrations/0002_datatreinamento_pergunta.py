@@ -4,26 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('oraculo', '0001_initial'),
+        ("oraculo", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DataTreinamento',
+            name="DataTreinamento",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('metadata', models.JSONField(blank=True, null=True)),
-                ('texto', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("metadata", models.JSONField(blank=True, null=True)),
+                ("texto", models.TextField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Pergunta',
+            name="Pergunta",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pergunta', models.TextField()),
-                ('data_treinamento', models.ManyToManyField(to='oraculo.datatreinamento')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("pergunta", models.TextField()),
+                (
+                    "data_treinamento",
+                    models.ManyToManyField(to="oraculo.datatreinamento"),
+                ),
             ],
         ),
     ]
